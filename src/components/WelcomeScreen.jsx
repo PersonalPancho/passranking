@@ -4,7 +4,7 @@ export const WelcomeScreen = ({ nickname, setNickname, onStart }) => {
   return (
     <div className="flex flex-col items-center justify-center p-8 bg-gray-900 border border-green-500/30 rounded-xl shadow-[0_0_15px_rgba(34,197,94,0.2)] w-full max-w-md mx-auto">
       <Terminal className="w-16 h-16 text-green-400 mb-4" />
-      <h2 className="text-2xl font-mono font-bold text-green-400 mb-2">INICIAR SESIÓN</h2>
+      <h2 className="text-2xl font-mono font-bold text-green-400 mb-2">Password Ranking</h2>
       <p className="text-gray-400 text-sm mb-6 text-center">Ingresa tu alias de competidor para acceder al panel de evaluación de seguridad.</p>
       
       <input 
