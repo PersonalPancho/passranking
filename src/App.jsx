@@ -11,32 +11,37 @@ function App() {
   const [ranking, setRanking] = useState([]);
 
   // Función para descargar y ordenar el ranking
+
   const fetchRanking = async () => {
     const { data, error } = await supabase
       .from('ranking')
       .select('*');
       
     if (data) {
-      // Aplicamos la misma lógica de ordenamiento que tenías
       const sortedRanking = data.sort((a, b) => {
-        if (a.is_valid === b.is_valid) return b.score - a.score;
-        return a.is_valid ? -1 : 1;
+        // 1. Primero, priorizamos si es válida (no filtrada)
+        if (a.is_valid !== b.is_valid) return a.is_valid ? -1 : 1;
+        // 2. Si ambas son válidas, priorizamos el score de zxcvbn
+        if (a.score !== b.score) return b.score - a.score;
+        // 3. DESEMPATE DEFINITIVO: Si tienen el mismo score (ej. 4), gana el que requiera más intentos de crackeo
+        return b.guesses - a.guesses; 
       });
       setRanking(sortedRanking);
     }
   };
 
   // Leer Supabase al inicio y suscribirse a cambios en tiempo real
+  // Leer Supabase al inicio y suscribirse a cambios en tiempo real
   useEffect(() => {
     fetchRanking();
 
-    // Escuchar cualquier INSERT en la tabla 'ranking'
+    // Escuchar CUALQUIER cambio (INSERT, UPDATE, DELETE) en la tabla 'ranking'
     const channel = supabase
       .channel('realtime-ranking')
       .on('postgres_changes', 
-          { event: 'INSERT', schema: 'public', table: 'ranking' }, 
+          { event: '*', schema: 'public', table: 'ranking' }, // <-- Cambiamos 'INSERT' por '*'
           () => {
-            fetchRanking(); // Recargar datos cuando alguien sube un password
+            fetchRanking(); // Recargar datos al instante
           }
       )
       .subscribe();
@@ -88,7 +93,7 @@ function App() {
       {!isLogged ? (
         <div className="flex flex-col items-center justify-center min-h-[80vh]">
           <WelcomeScreen nickname={nickname} setNickname={setNickname} onStart={handleStart} />
-          {ranking.length > 0 && <RankingBoard ranking={ranking} />}
+          {ranking.length > 0 && <RankingBoard ranking={ranking} currentUser={nickname} />}
         </div>
       ) : (
         <div className="max-w-3xl mx-auto flex flex-col items-center">
@@ -165,7 +170,7 @@ function App() {
             </div>
           </div>
 
-          <RankingBoard ranking={ranking} />
+          <RankingBoard ranking={ranking} currentUser={nickname} />
         </div>
       )}
     </div>
