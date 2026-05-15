@@ -1,6 +1,9 @@
+import { useState } from 'react'; // <-- AÑADIDO: Importamos useState
 import { Trophy, ShieldCheck, ShieldAlert, AlertTriangle, Fingerprint, Activity, User, Trash2 } from 'lucide-react';
 
 export const RankingBoard = ({ ranking, currentUser, isAdmin, onDelete }) => {
+  // NUEVO ESTADO: Controla qué contraseña está expandida
+  const [expandedId, setExpandedId] = useState(null);
   
   const formatGuesses = (num) => {
     if (num === undefined || num === null) return "0";
@@ -22,19 +25,20 @@ export const RankingBoard = ({ ranking, currentUser, isAdmin, onDelete }) => {
       .replace('less than a second', 'Instantáneo');
   };
 
-  // Variables de visualización
+  const toggleExpand = (id) => {
+    setExpandedId(expandedId === id ? null : id);
+  };
+
   const top5 = ranking.slice(0, 5);
-  
-  // Si es admin muestra TODAS, si no, muestra el TOP 5
   const displayList = isAdmin ? ranking : top5; 
 
   const currentUserIndex = ranking.findIndex(item => item.nickname === currentUser);
   const currentUserEntry = currentUserIndex !== -1 ? ranking[currentUserIndex] : null;
-  
-  // Ocultamos la tarjeta extra del usuario si estamos en modo admin (ya que ahí se ven todas)
   const showCurrentUserExtra = !isAdmin && currentUserEntry && currentUserIndex >= 5;
 
   const renderCard = (item, actualIndex, isHighlight = false) => {
+    const isExpanded = expandedId === item.id;
+
     return (
       <div 
         key={item.id + (isHighlight ? '-highlight' : '')} 
@@ -42,23 +46,39 @@ export const RankingBoard = ({ ranking, currentUser, isAdmin, onDelete }) => {
           item.is_valid ? 'border-l-green-500 shadow-[0_0_15px_rgba(34,197,94,0.05)]' : 'border-l-red-500'
         } ${isHighlight ? 'border-2 border-blue-500 bg-blue-900/10 scale-[1.02]' : ''}`}
       >
-        <div className="flex justify-between items-center border-b border-gray-800 pb-3">
-          <div className="flex items-center gap-3">
-            <span className="text-2xl font-black text-gray-700 w-8">#{actualIndex + 1}</span>
-            <h3 className="text-xl font-bold text-gray-200 flex items-center gap-2">
-              {item.nickname} 
-              {item.nickname === currentUser && <User className="w-5 h-5 text-blue-400" />}
-              <span className="text-gray-500 text-sm font-normal ml-3 tracking-widest bg-gray-950 px-2 py-1 rounded">
+        {/* CABECERA RESPONSIVE */}
+        <div className="flex justify-between items-start sm:items-center border-b border-gray-800 pb-3 gap-2">
+          
+          {/* Contenedor Izquierdo (Número, Alias y Contraseña) */}
+          {/* min-w-0 y flex-1 son vitales para evitar que el contenedor rompa la pantalla */}
+          <div className="flex items-start sm:items-center gap-3 min-w-0 flex-1">
+            <span className="text-2xl font-black text-gray-700 w-8 shrink-0 mt-1 sm:mt-0">
+              #{actualIndex + 1}
+            </span>
+            
+            <div className="flex flex-col sm:flex-row sm:items-center gap-1 sm:gap-3 min-w-0 flex-1">
+              <h3 className="text-xl font-bold text-gray-200 flex items-center gap-2 shrink-0">
+                <span className="truncate">{item.nickname}</span> 
+                {item.nickname === currentUser && <User className="w-5 h-5 text-blue-400 shrink-0" />}
+              </h3>
+              
+              {/* LA CONTRASEÑA: Se trunca por defecto, se expande al hacer clic */}
+              <span 
+                onClick={() => toggleExpand(item.id)}
+                className={`text-gray-500 text-sm font-normal tracking-widest bg-gray-950 px-2 py-1 rounded cursor-pointer border border-gray-800/30 hover:border-gray-600 transition-all ${
+                  isExpanded ? 'break-all whitespace-normal' : 'truncate'
+                }`}
+                title={isExpanded ? "Toca para ocultar" : "Toca para ver completa"}
+              >
                 {item.password}
               </span>
-            </h3>
+            </div>
           </div>
           
-          {/* Zona de Iconos / Botones */}
-          <div className="flex items-center gap-3">
+          {/* Zona de Iconos / Botones (Derecha) */}
+          <div className="flex items-center gap-3 shrink-0 mt-1 sm:mt-0">
             {actualIndex === 0 && item.is_valid && !isAdmin && <Trophy className="w-6 h-6 text-yellow-500 drop-shadow-md" />}
             
-            {/* BOTÓN DE BORRADO EXCLUSIVO PARA ADMIN */}
             {isAdmin && (
               <button
                 onClick={() => onDelete(item.id)}
@@ -71,6 +91,7 @@ export const RankingBoard = ({ ranking, currentUser, isAdmin, onDelete }) => {
           </div>
         </div>
 
+        {/* ESTADÍSTICAS (Mantenido igual) */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
           <div className="flex flex-col items-center justify-center p-3 bg-black border border-gray-800 rounded">
             <span className="text-xs text-gray-500 mb-1 flex items-center gap-1">
@@ -117,7 +138,6 @@ export const RankingBoard = ({ ranking, currentUser, isAdmin, onDelete }) => {
 
   return (
     <div className="w-full max-w-3xl mt-8 pb-12">
-      {/* Título dinámico para el modo Admin */}
       <h2 className={`text-2xl font-bold mb-6 flex items-center gap-3 font-mono border-b border-gray-800 pb-2 ${isAdmin ? 'text-red-500' : 'text-green-400'}`}>
         {isAdmin ? <ShieldAlert className="w-6 h-6 text-red-500" /> : <Trophy className="w-6 h-6 text-yellow-500" />}
         {isAdmin ? 'PANEL DE ADMINISTRACIÓN (TODA LA BDD)' : 'LEADERBOARD TOP 5'}
