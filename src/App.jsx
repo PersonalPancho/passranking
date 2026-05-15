@@ -97,7 +97,7 @@ function App() {
     }
   };
 
-  const isAdmin = nickname === 'franzm040603';
+  const isAdmin = nickname === 'franzmolinaromani040603';
   const scoreColors = ['bg-red-500', 'bg-orange-500', 'bg-yellow-500', 'bg-lime-500', 'bg-green-500'];
 
   return (
