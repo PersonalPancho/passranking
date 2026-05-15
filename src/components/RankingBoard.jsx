@@ -1,6 +1,6 @@
-import { Trophy, ShieldCheck, ShieldAlert, AlertTriangle, Fingerprint, Activity, User } from 'lucide-react';
+import { Trophy, ShieldCheck, ShieldAlert, AlertTriangle, Fingerprint, Activity, User, Trash2 } from 'lucide-react';
 
-export const RankingBoard = ({ ranking, currentUser }) => {
+export const RankingBoard = ({ ranking, currentUser, isAdmin, onDelete }) => {
   
   const formatGuesses = (num) => {
     if (num === undefined || num === null) return "0";
@@ -22,17 +22,18 @@ export const RankingBoard = ({ ranking, currentUser }) => {
       .replace('less than a second', 'Instantáneo');
   };
 
-  // 1. Obtenemos solo los 5 primeros para la tabla principal
+  // Variables de visualización
   const top5 = ranking.slice(0, 5);
   
-  // 2. Buscamos si el usuario actual está en la tabla general
+  // Si es admin muestra TODAS, si no, muestra el TOP 5
+  const displayList = isAdmin ? ranking : top5; 
+
   const currentUserIndex = ranking.findIndex(item => item.nickname === currentUser);
   const currentUserEntry = currentUserIndex !== -1 ? ranking[currentUserIndex] : null;
   
-  // 3. Si el usuario actual existe y NO está entre los 5 primeros, lo mostraremos extra
-  const showCurrentUserExtra = currentUserEntry && currentUserIndex >= 5;
+  // Ocultamos la tarjeta extra del usuario si estamos en modo admin (ya que ahí se ven todas)
+  const showCurrentUserExtra = !isAdmin && currentUserEntry && currentUserIndex >= 5;
 
-  // Función para dibujar una tarjeta (así no repetimos código)
   const renderCard = (item, actualIndex, isHighlight = false) => {
     return (
       <div 
@@ -41,23 +42,35 @@ export const RankingBoard = ({ ranking, currentUser }) => {
           item.is_valid ? 'border-l-green-500 shadow-[0_0_15px_rgba(34,197,94,0.05)]' : 'border-l-red-500'
         } ${isHighlight ? 'border-2 border-blue-500 bg-blue-900/10 scale-[1.02]' : ''}`}
       >
-        {/* Cabecera de la Tarjeta */}
         <div className="flex justify-between items-center border-b border-gray-800 pb-3">
           <div className="flex items-center gap-3">
             <span className="text-2xl font-black text-gray-700 w-8">#{actualIndex + 1}</span>
             <h3 className="text-xl font-bold text-gray-200 flex items-center gap-2">
               {item.nickname} 
-              {/* Le ponemos un icono azul al usuario actual para que resalte */}
               {item.nickname === currentUser && <User className="w-5 h-5 text-blue-400" />}
               <span className="text-gray-500 text-sm font-normal ml-3 tracking-widest bg-gray-950 px-2 py-1 rounded">
                 {item.password}
               </span>
             </h3>
           </div>
-          {actualIndex === 0 && item.is_valid && <Trophy className="w-6 h-6 text-yellow-500 drop-shadow-md" />}
+          
+          {/* Zona de Iconos / Botones */}
+          <div className="flex items-center gap-3">
+            {actualIndex === 0 && item.is_valid && !isAdmin && <Trophy className="w-6 h-6 text-yellow-500 drop-shadow-md" />}
+            
+            {/* BOTÓN DE BORRADO EXCLUSIVO PARA ADMIN */}
+            {isAdmin && (
+              <button
+                onClick={() => onDelete(item.id)}
+                className="p-2 bg-black border border-gray-800 rounded-md text-gray-500 hover:text-red-500 hover:border-red-500 transition-colors"
+                title={`Eliminar contraseña de ${item.nickname}`}
+              >
+                <Trash2 className="w-5 h-5" />
+              </button>
+            )}
+          </div>
         </div>
 
-        {/* Panel de Estadísticas (3 Columnas) */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
           <div className="flex flex-col items-center justify-center p-3 bg-black border border-gray-800 rounded">
             <span className="text-xs text-gray-500 mb-1 flex items-center gap-1">
@@ -104,8 +117,10 @@ export const RankingBoard = ({ ranking, currentUser }) => {
 
   return (
     <div className="w-full max-w-3xl mt-8 pb-12">
-      <h2 className="text-2xl font-bold text-green-400 mb-6 flex items-center gap-3 font-mono border-b border-gray-800 pb-2">
-        <Trophy className="w-6 h-6 text-yellow-500" /> LEADERBOARD TOP 5
+      {/* Título dinámico para el modo Admin */}
+      <h2 className={`text-2xl font-bold mb-6 flex items-center gap-3 font-mono border-b border-gray-800 pb-2 ${isAdmin ? 'text-red-500' : 'text-green-400'}`}>
+        {isAdmin ? <ShieldAlert className="w-6 h-6 text-red-500" /> : <Trophy className="w-6 h-6 text-yellow-500" />}
+        {isAdmin ? 'PANEL DE ADMINISTRACIÓN (TODA LA BDD)' : 'LEADERBOARD TOP 5'}
       </h2>
       
       <div className="space-y-6 font-mono">
@@ -115,10 +130,8 @@ export const RankingBoard = ({ ranking, currentUser }) => {
           </div>
         ) : (
           <>
-            {/* Dibujamos a los 5 primeros */}
-            {top5.map((item, index) => renderCard(item, index))}
+            {displayList.map((item, index) => renderCard(item, index))}
             
-            {/* Si el usuario no está en el Top 5, ponemos unos puntos suspensivos y lo mostramos al final */}
             {showCurrentUserExtra && (
               <>
                 <div className="flex flex-col items-center justify-center py-4 gap-2 opacity-50">
