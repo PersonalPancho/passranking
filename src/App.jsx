@@ -57,7 +57,7 @@ function App() {
     if (!trimmedName) return;
 
     if (isProfane(trimmedName)) {
-      alert("⚠️ El sistema ha detectado lenguaje ofensivo en el alias. Por favor, elige un nombre apropiado para la competencia.");
+      alert(" El sistema ha detectado lenguaje ofensivo en el alias. Por favor, elige un nombre apropiado para la competencia.");
       return; 
     }
 
@@ -97,7 +97,7 @@ function App() {
     }
   };
 
-  const isAdmin = nickname === 'pancho0406';
+  const isAdmin = nickname === 'franzm040603';
   const scoreColors = ['bg-red-500', 'bg-orange-500', 'bg-yellow-500', 'bg-lime-500', 'bg-green-500'];
 
   return (
