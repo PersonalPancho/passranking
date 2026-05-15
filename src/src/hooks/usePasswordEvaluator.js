@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import zxcvbn from 'zxcvbn';
 import { checkPasswordBreach } from '../services/hibp';
-import { supabase } from '../lib/supabase'; 
+import { supabase } from '../../lib/supabase'; 
 import { isProfane } from '../utils/profanity';
 
 const MAX_SUBMISSIONS_PER_DEVICE = 5; 

@@ -1,10 +1,10 @@
 import { useState, useEffect } from 'react';
-import { usePasswordEvaluator } from './src/hooks/usePasswordEvaluator'; // Corregida la ruta
 import { WelcomeScreen } from './components/WelcomeScreen';
 import { RankingBoard } from './components/RankingBoard';
 import { Loader2, KeyRound, LogOut, Trash2 } from 'lucide-react';
 import { supabase } from './lib/supabase';
-import { isProfane } from './src/utils/profanity'; // Corregida la ruta
+import { usePasswordEvaluator } from './src/hooks/usePasswordEvaluator'; 
+import { isProfane } from './src/utils/profanity';
 
 function App() {
   const [nickname, setNickname] = useState('');
